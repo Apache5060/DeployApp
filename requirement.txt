@@ -1,0 +1,7 @@
+streamlit
+moviepy
+requests
+google-generativeai
+langchain
+langchain_google_genai
+
