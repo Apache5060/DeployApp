@@ -37,6 +37,12 @@ def app():
 
     media_file = st.file_uploader("Upload a Video or Audio File", type=['mp4', 'mp3', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'wav', 'ogg', 'm4a', 'aac'])
 
+    # Initialize the chatbot interface in the sidebar
+    with st.sidebar:
+        st.header("Chatbot")
+        question = st.text_input("Ask a question:")
+        submit_button = st.button("Submit Question")
+
     generate_button = st.button("Generate Insights")
 
     if generate_button and media_file:
@@ -56,25 +62,10 @@ def app():
             st.write(transcript)
 
             combined_content = f"Summary:\n{summary}\n\nTranscript:\n{transcript}"
-            original_filename = os.path.splitext(media_file.name)[0]  # Get the base filename without extension
+            original_filename = os.path.splitext(media_file.name)[0]
             downloadable_filename = f"{original_filename}_summary_transcript.txt"
 
             st.download_button("Download Combined Content", combined_content, downloadable_filename, "text/plain")
-
-            with st.sidebar:
-                st.header("Chatbot")
-                question = st.text_input("Ask a question:")
-
-                if st.button("Submit Question"):
-                    with st.spinner("Processing..."):
-                        chatbot_response = ask_chatbot(f"{summary} {transcript}", question)
-
-                    if "error" not in chatbot_response:
-                        st.write(chatbot_response["response"])
-                    else:
-                        st.error(chatbot_response["error"])
-        else:
-            st.error(f"Error: {insights['error']}")
 
     elif 'summary' in st.session_state and 'transcript' in st.session_state:
         summary = st.session_state['summary']
@@ -85,19 +76,13 @@ def app():
         st.subheader("Transcript:")
         st.write(transcript)
 
-        combined_content = f"Summary:\n{summary}\n\nTranscript:\n{transcript}"
-        original_filename = os.path.splitext(media_file.name)[0]  # Or retrieve from session state
-        downloadable_filename = f"{original_filename}_summary_transcript.txt"
-
-        st.download_button("Download Combined Content", combined_content, downloadable_filename, "text/plain")
-
-        with st.sidebar:
-            st.header("Chatbot")
-            question = st.text_input("Ask a question:")
-
-            if st.button("Submit Question"):
+    # Chatbot response processing
+    if submit_button:
+        context = f"{st.session_state.get('summary', '')} {st.session_state.get('transcript', '')}"
+        if question:  # Ensure there is a question to process
+            with st.sidebar:
                 with st.spinner("Processing..."):
-                    chatbot_response = ask_chatbot(f"{summary} {transcript}", question)
+                    chatbot_response = ask_chatbot(context, question)
 
                 if "error" not in chatbot_response:
                     st.write(chatbot_response["response"])
